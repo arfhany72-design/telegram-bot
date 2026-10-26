@@ -1,23 +1,26 @@
-import logging
-from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
+import asyncio
+from telethon import TelegramClient, events
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+api_id = 33412623
+api_hash = '9376d25b1911642531cd3210c8b44b27'
 
-BOT_TOKEN =BOT_TOKEN = "8898982004:AAEgIPs4M_jaEUSZy1rmAqio7KCxvGJUmZA"
+WELCOME_MESSAGE = """أهلا بـك صديـقي ⚡️ 🫱
 
-async def reply_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message.text:
-        return
-    reply_text = f"🤖 البوت استلم: {update.message.text}"
-    await update.message.reply_text(reply_text)
+رجاء اكتب مشكلتك او طلبك بختصار حتى اتمكن من الرد عليك بسرعة 🥷
+
+قد اتاخر عليك بالرد بسبب ضغط الرسائل الكبير ⏰🚫"""
+
+client = TelegramClient('my_session', api_id, api_hash)
+
+@client.on(events.NewMessage(incoming=True))
+async def handler(event):
+    if event.is_private and not event.out:
+        await event.reply(WELCOME_MESSAGE)
+
+async def main():
+    await client.start()
+    print("Userbot is running!")
+    await client.run_until_disconnected()
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token(BOT_TOKEN).build()
-    message_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), reply_message)
-    application.add_handler(message_handler)
-    print("🔥 البوت شغال!")
-    application.run_polling()
+    asyncio.run(main())
