@@ -1,6 +1,9 @@
 import asyncio
 import time
 from telethon import TelegramClient, events
+from flask import Flask
+import threading
+import os
 
 api_id = 33412623
 api_hash = '9376d25b1911642531cd3210c8b44b27'
@@ -12,27 +15,17 @@ WELCOME_MESSAGE = """أهلا بـك صديـقي ⚡️ 🫱
 قد اتاخر عليك بالرد بسبب ضغط الرسائل الكبير ⏰🚫"""
 
 client = TelegramClient('my_session', api_id, api_hash)
-
-# متغير عشان نحفظ وقت آخر رد لكل شخص
 last_reply_times = {}
 
 @client.on(events.NewMessage(incoming=True))
 async def handler(event):
-    # نتأكد إن الرسالة في الخاص ومش من البوت نفسه
     if event.is_private and not event.out:
         user_id = event.sender_id
         current_time = time.time()
-        
-        # نشوف لو الشخص ده استلم رد قبل كده
         if user_id in last_reply_times:
-            # لو عدت 4 دقايق (240 ثانية)، نرد تاني
             if current_time - last_reply_times[user_id] < 240:
-                return # لو لسه مكملش 4 دقايق، ميردش
-        
-        # نسجل وقت الرد الحالي
+                return
         last_reply_times[user_id] = current_time
-        
-        # نبعت الرد
         await event.reply(WELCOME_MESSAGE)
 
 async def main():
@@ -40,5 +33,15 @@ async def main():
     print("Userbot is running!")
     await client.run_until_disconnected()
 
+app = Flask(__name__)
+@app.route('/')
+def home():
+    return "Bot is alive!"
+
+def run_flask():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
 if __name__ == '__main__':
+    threading.Thread(target=run_flask, daemon=True).start()
     asyncio.run(main())
