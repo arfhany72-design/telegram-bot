@@ -20,6 +20,11 @@ last_reply_times = {}
 @client.on(events.NewMessage(incoming=True))
 async def handler(event):
     if event.is_private and not event.out:
+        sender = await event.get_sender()
+        # لو الحساب اللي باعت بوت، متعملش حاجة واخرج
+        if sender and sender.bot:
+            return
+            
         user_id = event.sender_id
         current_time = time.time()
         if user_id in last_reply_times:
